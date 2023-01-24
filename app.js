@@ -3,7 +3,8 @@ const ejs = require('ejs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const md5 = require('md5')
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const app = express();
 
@@ -39,16 +40,19 @@ app.get('/logout', function(req, res){
 })
 
 app.post('/register', function(req, res){
-    const newUser = new User({
-        email: req.body.username,
-        password: md5(req.body.password) 
-    })
+    
     User.findOne({email: req.body.username}, function(err, foundEmail){
         if (foundEmail){
             res.send('username already in use. Please try another one')
         }else{
-            newUser.save(err => {if (err) console.log(err)})
-            res.render('secrets')
+            bcrypt.hash(req.body.password, saltRounds, function(err, hash){
+                const newUser = new User({
+                    email: req.body.username,
+                    password: hash 
+                })
+                newUser.save()
+            })
+            res.render('secrets');
         }
     })
    
@@ -56,17 +60,19 @@ app.post('/register', function(req, res){
 
 app.post('/login', function(req, res){
     email = req.body.username;
-    password = md5(req.body.password);
+    password = req.body.password;
     cnxToDB;
     User.findOne({email: email}, function(er, foundUser){
         if(!foundUser){
             res.send('Username or password are invalid')
         }else{
-            if (foundUser.password == password){
-                res.render('secrets')
-            }else{
-                res.send('Username or password are invalid')
-            }
+            bcrypt.compare(password, foundUser.password, function(err, result){
+                if(result){
+                    res.render('secrets')
+                }else{
+                    res.send('Username or password are invalid')
+                }
+            })
         }
     })
 
