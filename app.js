@@ -3,79 +3,100 @@ const ejs = require('ejs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-
+mongoose.set('strictQuery', true);
+const session = require('express-session');
+const mongoDBSession = require('connect-mongodb-session')(session);
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
+const passport = require('passport');
 const app = express();
+
+const mongoURI = 'mongodb://127.0.0.1:27017/usersDB';
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 var cnxToDB = async function main(){
-    await mongoose.connect('mongodb://127.0.0.1:27017/usersDB');
+    await mongoose.connect(mongoURI);
 }()
 
-const userSchema = new mongoose.Schema({  // we used to create a simple js object as a schema but now we gonna do some stuff with it we need to call the mongose schema !!
-    email: String,
-    password: String
+const store = new mongoDBSession({
+    uri: mongoURI,
+    collection: 'mySessions'
 })
 
-const User =  mongoose.model('user', userSchema)
+app.use(session({
+    secret: 'my little secret.',
+    resave: false,
+    saveUninitialized: false,
+    store: store
+}))
+
+const isAuth = (req, res, next) => {
+    if (req.session.isAuth) {
+        next()
+    }else {
+        res.redirect('/login')
+    }
+}
 
 app.get('/', function(req, res){
-    res.render('home')
+    req.session.isAuth = true;
+    res.render('home');
 })
 
 app.get('/login', function(req, res){
-    res.render('login')
+    res.render('login', {
+        regSuccess: '',
+        wrongCreds: ''
+    })
 })
 
 app.get('/register', function(req, res){
-    res.render('register')
+    console.log(req.session)
+    res.render('register', {
+        regSuccess: '',
+        usernameTaken: ''
+    })
 })
 
 app.get('/logout', function(req, res){
-    res.redirect('/')
+    req.session.destroy((err) => {
+        if (err) throw err;
+        res.redirect("/login");
+    });
 })
 
-app.post('/register', function(req, res){
-    
-    User.findOne({email: req.body.username}, function(err, foundEmail){
-        if (foundEmail){
-            res.send('username already in use. Please try another one')
-        }else{
-            bcrypt.hash(req.body.password, saltRounds, function(err, hash){
-                const newUser = new User({
-                    email: req.body.username,
-                    password: hash 
-                })
-                newUser.save()
-            })
-            res.render('secrets');
-        }
-    })
-   
+app.get('/secrets', isAuth, function(req, res){
+    res.render('secrets')
 })
 
-app.post('/login', function(req, res){
-    email = req.body.username;
-    password = req.body.password;
-    cnxToDB;
-    User.findOne({email: email}, function(er, foundUser){
-        if(!foundUser){
-            res.send('Username or password are invalid')
-        }else{
-            bcrypt.compare(password, foundUser.password, function(err, result){
-                if(result){
-                    res.render('secrets')
-                }else{
-                    res.send('Username or password are invalid')
-                }
-            })
-        }
-    })
-
+app.post('/register', async(req, res) => {
+    const {email, password} = req.body;
+    hashedPass = await bcrypt.hash(password, 12);
+    const user = await User.findOne({email});
+    if (user) {
+        return res.render('register', {regSuccess: '', usernameTaken: 'Username already taken. Please try another one'})
+    }
+    const newUser = new User({email, password: hashedPass});
+    await newUser.save();
+    res.render('login', {wrongCreds: '', regSuccess: 'You have successfully registered. You can log in now'})
+})
+  
+app.post('/login', async(req, res) => {
+    const {email, password} = req.body;
+    const foundUser = await User.findOne({email});
+    if (!foundUser) {
+        return res.render('login', {wrongCreds: 'The username you entered or password is invalid', regSuccess: ''});
+    }
+    const passMatch = await bcrypt.compare(password, foundUser.password);
+    if (!passMatch) {
+        return res.render('login', {wrongCreds: 'The username you entered or password is invalid', regSuccess: ''});
+    }
+    req.session.isAuth = true;
+    req.session.username = foundUser.email;
+    res.redirect('/secrets');
 })
 
 app.listen(3000, () => console.log('server running on port 3000'))

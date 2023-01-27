@@ -7,16 +7,19 @@
     <div class="col-sm-8">
       <div class="card">
         <div class="card-body">
-
+          <p style="color: green; border-radius: 80%;"><%= regSuccess %></p>
           <!-- Makes POST request to /login route -->
           <form action="/login" method="POST">
             <div class="form-group">
               <label for="email">Email</label>
-              <input type="email" class="form-control" name="username">
+              <input type="email" class="form-control" name="email" required>
             </div>
             <div class="form-group">
               <label for="password">Password</label>
-              <input type="password" class="form-control" name="password">
+              <input type="password" class="form-control" name="password" required>
+            </div>
+            <div class="wrongCreds">
+              <p style='color: red;'><% wrongCreds %></p>
             </div>
             <button type="submit" class="btn btn-dark">Login</button>
           </form>
