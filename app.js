@@ -1,4 +1,3 @@
-require('dotenv').config();
 const ejs = require('ejs');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -10,20 +9,29 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 const app = express();
 
-const mongoURI = process.env.MONGO_URI;
+const mongoURI = "mongodb+srv://admin:admin@cluster0.l0z6vjn.mongodb.net/usersDB";
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 async function cnxToDb() {
-    await mongoose.connect(mongoURI);
+    try {
+        await mongoose.connect(mongoURI);
+    }
+    catch (err){
+        console.log('Error connecting to MongoDB:', err);
+    }
 };
 cnxToDb();
 const store = new mongoDBSession({
     uri: mongoURI,
     collection: 'mySessions'
-})
+});
+
+store.on('error', (error) => {
+    console.error('Session store error:', error);
+});
 
 app.use(session({
     secret: 'my little secret.',
@@ -102,4 +110,4 @@ app.post('/login', async (req, res) => {
     res.redirect('/secrets');
 })
 
-app.listen(process.env.PORT, () => console.log('server running on port 3000'))
+app.listen(process.env.PORT || 3000, () => console.log('server running on port 3000'))
