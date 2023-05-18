@@ -34,7 +34,7 @@ store.on('error', (error) => {
 });
 
 app.use(session({
-    secret: 'my little secret.',
+    secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
     store: store
