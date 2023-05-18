@@ -1,3 +1,4 @@
+require('dotenv').config();
 const ejs = require('ejs');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -15,10 +16,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-const cnxToDB = async function () {
+async function cnxToDb() {
     await mongoose.connect(mongoURI);
-}()
-
+};
+cnxToDb();
 const store = new mongoDBSession({
     uri: mongoURI,
     collection: 'mySessions'
