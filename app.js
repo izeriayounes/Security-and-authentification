@@ -9,7 +9,7 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 const app = express();
 
-const mongoURI = "mongodb+srv://admin:admin@cluster0.l0z6vjn.mongodb.net/usersDB";
+const mongoURI = process.env.MONGO_URI;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
