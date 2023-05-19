@@ -67,10 +67,10 @@ app.get('/logout', function (req, res) {
 })
 
 app.get('/secrets', async (req, res) => {
+    await mongoose.connect(mongoURI);
     const foundSecrets = await Secret.find({});
     console.log(foundSecrets);
-    foundSecrets ? res.render('secrets', {secrets: foundSecrets}) : res.send("no secrets found")
-    
+    foundSecrets ? res.render('secrets', {secrets: foundSecrets}) : res.send("no secrets found");
 })
 
 app.get('/submit', isAuth, function(req, res) {
