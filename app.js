@@ -1,4 +1,3 @@
-require('dotenv').config();
 const ejs = require('ejs');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -7,6 +6,7 @@ mongoose.set('strictQuery', true);
 const session = require('express-session');
 const mongoDBSession = require('connect-mongodb-session')(session);
 const User = require('./models/User');
+const Secret = require('./models/Secret');
 const bcrypt = require('bcryptjs');
 const app = express();
 
@@ -66,13 +66,29 @@ app.get('/logout', function (req, res) {
     });
 })
 
-app.get('/secrets', isAuth, function (req, res) {
-    res.render('secrets');
+app.get('/secrets', function (req, res) {
+    Secret.find({})
+    .then(foundSecrets => res.render('secrets', {secrets: foundSecrets}))
+    .catch(err => res.send(err))
 })
 
-app.get('/submit', function(req, res) {
+app.get('/submit', isAuth, function(req, res) {
     res.render('submit');
 })
+
+app.post('/submit', async (req, res) => {
+    try {
+        const submittedSecret = req.body.secret;
+        await mongoose.connect(mongoURI);
+        const newSecret = new Secret({ secret: submittedSecret });
+        await newSecret.save();
+        res.render('secrets');
+    } catch (err) {
+        res.send('Error during secret submission: ' + err);
+    } finally {
+        mongoose.connection.close(); // Close the connection after the operation
+    }
+});
 
 //popup messages for success/fail login or register
 const regSuccess = { wrongCreds: '', regSuccess: 'You have successfully registered. You can log in now' };
