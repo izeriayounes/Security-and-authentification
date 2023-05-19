@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
+const moment = require('moment');
 
 const secretSchema = new mongoose.Schema({
     date: {
         type: Date,
-        default: Date.now()
+        default: currentDate
     },
     secret: {
         type: String,
@@ -11,4 +12,4 @@ const secretSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('secret', secretSchema)
+module.exports = mongoose.model('secret', secretSchema);
