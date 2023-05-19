@@ -12,22 +12,16 @@ h1{
 }
 
 .secret-text {
-  text-align: center;
-  font-size: 2rem;
   color: #fff;
   background-color: #000;
 }
 
 .secret-date {
   color: #fff;
-  background-color: #000;
+  text-align: left;
 }
 
 .row{
   width: 90%;
   margin-left: 21%;
-}
-
-.d-none{
-  
 }
