@@ -93,8 +93,8 @@ app.post('/submit', async (req, res) => {
 
 //popup messages for success/fail login or register
 const regSuccess = { wrongCreds: '', regSuccess: 'You have successfully registered. You can log in now' };
-const usernameTaken = { regSuccess: '', usernameTaken: 'Username already taken. Please try another one' };
-const wrongCreds = { wrongCreds: 'The username you entered or password is invalid', regSuccess: '' };
+const usernameTaken = { regSuccess: '', usernameTaken: 'Email already exists. Please try another one' };
+const wrongCreds = { wrongCreds: 'The informations you entered are invalid', regSuccess: '' };
 
 app.post('/register', async (req, res) => {
     try {
