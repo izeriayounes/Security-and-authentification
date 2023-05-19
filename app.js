@@ -42,6 +42,7 @@ const isAuth = (req, res, next) => {
 
 app.get('/', function (req, res) {
     req.session.isAuth = true;
+    console.log("app working yaaaay")
     res.render('home');
 })
 
