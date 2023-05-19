@@ -1,17 +1,14 @@
 const mongoose = require('mongoose');
-const moment = require('moment');
-
-const currentDate = moment().format('YYYY-MM-DD');
+const currentDate = new Date();
 
 const secretSchema = new mongoose.Schema({
     date: {
         type: Date,
-        default: currentDate
+        default: currentDate.toISOString().slice(0, 10)
     },
     secret: {
         type: String,
         required: true
     }
 })
-
 module.exports = mongoose.model('secret', secretSchema);
