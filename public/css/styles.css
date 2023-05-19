@@ -12,13 +12,14 @@ h1{
 }
 
 .secret-text {
+  text-align: center;
+  font-size: 2rem;
   color: #fff;
   background-color: #000;
 }
 
 .secret-date {
   color: #fff;
-  text-align: left;
   background-color: #000;
 }
 
