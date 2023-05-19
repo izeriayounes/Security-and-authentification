@@ -1,3 +1,4 @@
+require('dotenv').config();
 const ejs = require('ejs');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -15,15 +16,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-async function cnxToDb() {
-    try {
-        await mongoose.connect(mongoURI);
-    }
-    catch (err){
-        console.log('Error connecting to MongoDB:', err);
-    }
-};
-cnxToDb();
 const store = new mongoDBSession({
     uri: mongoURI,
     collection: 'mySessions'
@@ -34,7 +26,7 @@ store.on('error', (error) => {
 });
 
 app.use(session({
-    secret: process.env.SECRET,
+    secret: "my little secret.!!",
     resave: false,
     saveUninitialized: false,
     store: store
@@ -42,9 +34,9 @@ app.use(session({
 
 const isAuth = (req, res, next) => {
     if (req.session.isAuth) {
-        next()
+        next();
     } else {
-        res.redirect('/login')
+        res.redirect('/login');
     }
 }
 
@@ -75,7 +67,11 @@ app.get('/logout', function (req, res) {
 })
 
 app.get('/secrets', isAuth, function (req, res) {
-    res.render('secrets')
+    res.render('secrets');
+})
+
+app.get('/submit', function(req, res) {
+    res.render('submit');
 })
 
 //popup messages for success/fail login or register
@@ -84,30 +80,47 @@ const usernameTaken = { regSuccess: '', usernameTaken: 'Username already taken. 
 const wrongCreds = { wrongCreds: 'The username you entered or password is invalid', regSuccess: '' };
 
 app.post('/register', async (req, res) => {
-    const { email, password } = req.body;
-    hashedPass = await bcrypt.hash(password, 12);
-    const user = await User.findOne({ email });
-    if (user) {
-        return res.render('register', usernameTaken);
+    try {
+        await mongoose.connect(mongoURI);
+        const { email, password } = req.body;
+        hashedPass = await bcrypt.hash(password, 12);
+        const user = await User.findOne({ email });
+        if (user) {
+            return res.render('register', usernameTaken);
+        }
+        const newUser = new User({ email, password: hashedPass });
+        await newUser.save();
+        res.render('login', regSuccess);
     }
-    const newUser = new User({ email, password: hashedPass });
-    await newUser.save();
-    res.render('login', regSuccess);
+    catch (err) {
+        console.error('Error during registration:', err);
+    } finally {
+        mongoose.connection.close(); // Close the connection after the operation
+    }
 })
 
 app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    const foundUser = await User.findOne({ email });
-    if (!foundUser) {
-        return res.render('login', wrongCreds);
+    try {
+        await mongoose.connect(mongoURI);
+
+        const { email, password } = req.body;
+        const foundUser = await User.findOne({ email });
+        if (!foundUser) {
+            return res.render('login', wrongCreds);
+        }
+        const passMatch = await bcrypt.compare(password, foundUser.password);
+        if (!passMatch) {
+            return res.render('login', wrongCreds);
+        }
+        req.session.isAuth = true;
+        req.session.username = foundUser.email;
+        res.redirect('/secrets');
     }
-    const passMatch = await bcrypt.compare(password, foundUser.password);
-    if (!passMatch) {
-        return res.render('login', wrongCreds);
+    catch (err) {
+        console.error('Error during login:', err);
+    } finally {
+        mongoose.connection.close(); // Close the connection after the operation
     }
-    req.session.isAuth = true;
-    req.session.username = foundUser.email;
-    res.redirect('/secrets');
 })
 
 app.listen(process.env.PORT || 3000, () => console.log('server running on port 3000'))
