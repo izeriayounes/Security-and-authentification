@@ -42,7 +42,6 @@ const isAuth = (req, res, next) => {
 
 app.get('/', function (req, res) {
     req.session.isAuth = true;
-    console.log("app working yaaaay")
     res.render('home');
 })
 
@@ -69,6 +68,7 @@ app.get('/logout', function (req, res) {
 
 app.get('/secrets', async (req, res) => {
     const foundSecrets = await Secret.find({});
+    console.log(foundSecrets);
     foundSecrets ? res.render('secrets', {secrets: foundSecrets}) : res.send("no secrets found")
     
 })
