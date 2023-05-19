@@ -83,7 +83,7 @@ app.post('/submit', async (req, res) => {
         await mongoose.connect(mongoURI);
         const newSecret = new Secret({ secret: submittedSecret });
         await newSecret.save();
-        res.render('secrets');
+        res.redirect('/secrets');
     } catch (err) {
         res.send('Error during secret submission: ' + err);
     } finally {
