@@ -32,3 +32,7 @@ h1{
 #passwordMatchError {
   margin: 10px, 0;
 }
+
+#register-btn {
+  margin-top: 20px;
+}
