@@ -28,3 +28,7 @@ h1{
 .footer {
   background-color: blanchedalmond;
 }
+
+#passwordMatchError {
+  margin: 10px, 0;
+}
