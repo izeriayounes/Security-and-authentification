@@ -97,9 +97,9 @@ const usernameTaken = { regSuccess: '', usernameTaken: 'Email already exists. Pl
 const wrongCreds = { wrongCreds: 'The informations you entered are invalid. Try again', regSuccess: '' };
 
 app.post('/register', async (req, res) => {
+    const { email, password } = req.body;
     try {
         await mongoose.connect(mongoURI);
-        const { email, password } = req.body;
         hashedPass = await bcrypt.hash(password, 12);
         const user = await User.findOne({ email });
         if (user) {
